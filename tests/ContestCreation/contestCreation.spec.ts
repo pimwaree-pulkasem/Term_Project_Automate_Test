@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { ContestPage } from '../pages/ContestCreationPage';
-import { LoginPage } from '../pages/ContestCreationPage';
+import { ContestPage } from '../../pages/ContestCreation/contestCreationPage';
+import { LoginPage } from '../../pages/ContestCreation/contestCreationPage';
 
 const OWNER_EMAIL    = process.env.OWNER_EMAIL    ?? 'owner@example.com';
 const OWNER_PASSWORD = process.env.OWNER_PASSWORD ?? 'password';
