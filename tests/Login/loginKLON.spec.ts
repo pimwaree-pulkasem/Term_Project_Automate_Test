@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { LoginKLONPage } from '../pages/loginKLON-page';
+import { LoginKLONPage } from '../../pages/Login/loginKLON-page';
 
 const VALID_EMAIL     = 'exist@gmail.com';
 const VALID_PASSWORD = '123456';

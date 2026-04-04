@@ -1,22 +1,17 @@
 import { test, expect } from '@playwright/test';
-import { ContestPage } from '../../pages/ContestCreation/contestCreationPage';
-import { LoginKLONPage } from '../../pages/Login/loginKLON-page';
-
+import { ContestPage, LoginPage } from '../../pages/ContestCreation/contestCreationPage';
 
 const OWNER_EMAIL    = process.env.OWNER_EMAIL    ?? 'owner@example.com';
 const OWNER_PASSWORD = process.env.OWNER_PASSWORD ?? 'password';
-const FUTURE_DATE = '2000-03-31';
-const PAST_DATE   = '2000-01-01';
+const FUTURE_DATE = '2027-03-31';
+const PAST_DATE   = '2023-01-01';
 
 test.describe('Contest Creation Feature', () => {
-  let loginKLONPage: LoginKLONPage;
-   test.beforeEach(async ({ page }) => {
-    loginKLONPage = new LoginKLONPage(page);
-    await loginKLONPage.goto(); 
-    const email = process.env.OWNER_EMAIL ?? 'owner@example.com';
-    const password = process.env.OWNER_PASSWORD ?? 'password';
-    await loginKLONPage.login(email, password);
-  });
+ 
+ test.beforeEach(async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  await loginPage.login(OWNER_EMAIL, OWNER_PASSWORD);
+});
 
   test.describe('Positive Cases', () => {
     
@@ -32,7 +27,7 @@ test.describe('Contest Creation Feature', () => {
     });
 
     test('Contest-Creation-TC-05 | แสดงสถานะ "สร้างสำเร็จ" หลังจากสร้างการประกวด', async ({ page }) => {
-      const contestName = 'การประกวดแต่งกลอนแปด ระดับประเทศ ประจำปี 2026';
+      const contestName = 'การประกวดแต่งกลอนแปด ระดับประเทศ ประจำปี 2027';
       const contestPage = new ContestPage(page);
       await contestPage.goToCreateContest();
       await contestPage.fillContestForm({
@@ -48,7 +43,7 @@ test.describe('Contest Creation Feature', () => {
       const contestPage = new ContestPage(page);
       await contestPage.goToCreateContest();
       await contestPage.fillContestForm({
-        name: 'การประกวดแต่งกลอนแปด ระดับประเทศ ประจำปี 2026', detail: 'รายละเอียด',
+        name: 'การประกวดแต่งโคลงสี่สุภาพ ระดับประเทศ ประจำปี 2027', detail: 'รายละเอียด',
         rules: specialRules, endDate: FUTURE_DATE, scoreWeight: 100,
       });
       await contestPage.submit();
@@ -56,7 +51,7 @@ test.describe('Contest Creation Feature', () => {
     });
 
     test('Contest-Creation-TC-07 | ข้อมูลไม่ควรถูกบันทึกเมื่อกดยกเลิกกลางคัน', async ({ page }) => {
-      const contestName = 'การประกวดแต่งกลอนแปด ระดับประเทศ ประจำปี 2026';
+      const contestName = 'การประกวดแต่งโคลงสี่สุภาพ ระดับประเทศ ประจำปี 2027';
       const contestPage = new ContestPage(page);
       await contestPage.goToCreateContest();
       await contestPage.fillContestForm({
@@ -75,9 +70,9 @@ test.describe('Contest Creation Feature', () => {
       const contestPage = new ContestPage(page);
       await contestPage.goToCreateContest();
       await contestPage.fillContestForm({ 
-        name: 'การประกวดแต่งกลอนแปด ระดับประเทศ ประจำปี 2026', 
+        name: 'การประกวดแต่งกลอนแปด ระดับประเทศ ประจำปี 2027', 
         detail: '', 
-        endDate: FUTURE_DATE 
+        endDate: FUTURE_DATE , scoreWeight: 100
       });
       await contestPage.submit();
       expect(await contestPage.getAlertText()).toContain('กรุณากรอกรายละเอียดการประกวด');
@@ -98,7 +93,7 @@ test.describe('Contest Creation Feature', () => {
       const contestPage = new ContestPage(page);
       await contestPage.goToCreateContest();
       await contestPage.fillContestForm({
-        name: 'การประกวดแต่งกลอนแปด ระดับประเทศ ประจำปี 2026', detail: 'รายละเอียด',
+        name: 'การประกวดแต่งกลอนแปด ระดับประเทศ ประจำปี 2027', detail: 'รายละเอียด',
         rules: 'ห้ามใช้ AI', endDate: PAST_DATE, scoreWeight: 100
       });
       await contestPage.submit();
@@ -109,7 +104,7 @@ test.describe('Contest Creation Feature', () => {
       const contestPage = new ContestPage(page);
       await contestPage.goToCreateContest();
       await contestPage.fillContestForm({
-        name: 'การประกวดแต่งกลอนแปด ระดับประเทศ ประจำปี 2026', detail: 'รายละเอียด',
+        name: 'การประกวดแต่งโคลงสี่สุภาพ ระดับประเทศ ประจำปี 2027', detail: 'รายละเอียด',
         rules: 'ห้ามใช้ AI', endDate: FUTURE_DATE, scoreWeight: 80
       });
       await contestPage.submit();
@@ -120,7 +115,7 @@ test.describe('Contest Creation Feature', () => {
       const contestPage = new ContestPage(page);
       await contestPage.goToCreateContest();
       await contestPage.fillContestForm({
-        name: 'การประกวดแต่งกลอนแปด ระดับประเทศ ประจำปี 2026', detail: 'รายละเอียด',
+        name: 'การประกวดแต่งโคลงสี่สุภาพ ระดับประเทศ ประจำปี 2027', detail: 'รายละเอียด',
         rules: 'ห้ามใช้ AI', endDate: FUTURE_DATE, scoreWeight: 100
       });
       await page.context().clearCookies(); 

@@ -25,7 +25,7 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    baseURL: process.env.BASE_URL ?? 'https://poetry-contest-platform.vercel.app/results',
+    baseURL: process.env.BASE_URL ?? 'https://poetry-contest-platform.vercel.app',
 
     trace: 'on-first-retry',
   },

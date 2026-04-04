@@ -74,3 +74,14 @@ export class ContestPage {
     return (await card.getByTestId('contest-status').textContent()) ?? '';
   }
 }
+export class LoginPage {
+  readonly page: Page;
+
+  constructor(page: Page) {
+    this.page = page;
+  }
+
+  async login(email: string, password: string) {
+ 
+  }
+}
