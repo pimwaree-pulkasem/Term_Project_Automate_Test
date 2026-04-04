@@ -1,5 +1,4 @@
-import { expect, Page } from "@playwright/test";
-import { LoginKLONPage } from "./login-klon-page";
+import { Page, expect } from "@playwright/test";
 
 type PersonalInfo = {
   firstName: string;
@@ -7,7 +6,7 @@ type PersonalInfo = {
   email: string;
   phone: string;
   level: string;
-  filePath: string;
+  filePath?: string;
 };
 
 type PoemInfo = {
@@ -15,97 +14,205 @@ type PoemInfo = {
   content: string;
 };
 
-export class SubmissionPage extends LoginKLONPage {
-  constructor(page: Page) {
-    super(page);
+export class SubmissionPage {
+  constructor(private page: Page) {}
+
+  // Navigation 
+  async goToMySubmissions() {
+    await this.page.locator("[data-testid='profile-avatar']").click();
+    await this.page.getByRole("menuitem", { name: "ผลงานที่ส่งประกวด" }).click();
+    await this.page.waitForURL("**/submissions**");
   }
 
-// Properties (locators)
-  private firstNameInput() {
-    return this.page.getByLabel("ชื่อ");
-  }
-  private lastNameInput() {
-    return this.page.getByLabel("นามสกุล");
-  }
-  private submitEmailInput() {
-    return this.page.getByLabel("อีเมล");
-  }
-  private phoneInput() {
-    return this.page.getByLabel("เบอร์โทรศัพท์");
-  }
-  private levelSelect() {
-    return this.page.getByLabel("ระดับการแข่งขัน");
-  }
-  private fileInput() {
-    return this.page.locator('input[type="file"]');
-  }
-  private nextButton() {
-    return this.page.getByRole("button", { name: "ถัดไป" });
-  }
-  private titleInput() {
-    return this.page.getByLabel("ชื่อผลงาน");
-  }
-  private poemContentInput() {
-    return this.page.getByLabel("เนื้อหากลอน");
-  }
-  private confirmButton() {
-    return this.page.getByRole("button", { name: "ยืนยัน" });
-  }
-  private successMessage() {
-    return this.page.getByText("ส่งผลงานสำเร็จ");
-  }
-  private pendingStatus() {
-    return this.page.getByText("รอการตรวจสอบ");
-  }
-  private duplicateErrorMessage() {
-    return this.page.getByText(/มีผลงาน.*แล้ว/);
+  async openSubmission(title: string) {
+    await this.page.getByText(title).click();
+    await this.page.waitForURL("**/submissions/**");
   }
 
-// Actions
-  async fillPersonalInfo(data: PersonalInfo) {
-    await this.firstNameInput().fill(data.firstName);
-    await this.lastNameInput().fill(data.lastName);
-    await this.submitEmailInput().fill(data.email);
-    await this.phoneInput().fill(data.phone);
-    await this.levelSelect().selectOption({ label: data.level });
-    await this.fileInput().setInputFiles(data.filePath);
+  // Form: Personal Info 
+  async fillPersonalInfo(info: PersonalInfo) {
+    if (info.firstName !== undefined) {
+      await this.page.getByLabel("ชื่อ").fill(info.firstName);
+    }
+    if (info.lastName !== undefined) {
+      await this.page.getByLabel("นามสกุล").fill(info.lastName);
+    }
+    if (info.email !== undefined) {
+      await this.page.getByLabel("อีเมล").fill(info.email);
+    }
+    if (info.phone !== undefined) {
+      await this.page.getByLabel("เบอร์โทรศัพท์").fill(info.phone);
+    }
+    if (info.level) {
+      await this.page
+        .getByRole("group", { name: "เลือกระดับการแข่งขัน" })
+        .getByText(info.level)
+        .click();
+    }
+    if (info.filePath) {
+      await this.uploadFile(info.filePath);
+    }
   }
 
   async goNextFromPersonalInfo() {
-    await this.nextButton().click();
-    await this.page.waitForLoadState("networkidle");
-    await this.titleInput().waitFor({ state: "visible" });
+    await this.page.getByRole("button", { name: "ถัดไป" }).click();
   }
 
-  async fillPoemInfo(data: PoemInfo) {
-    await this.titleInput().fill(data.title);
-    await this.poemContentInput().fill(data.content);
+  // Form: Poem Info 
+  async fillPoemInfo(info: PoemInfo) {
+    if (info.title !== undefined) {
+      await this.page.getByLabel("ชื่อผลงาน").fill(info.title);
+    }
+    if (info.content !== undefined) {
+      await this.page.getByLabel("เนื้อหากลอน").fill(info.content);
+    }
   }
 
   async goNextFromPoemInfo() {
-    await this.nextButton().click();
-    await this.page.waitForLoadState("networkidle");
-    await this.confirmButton().waitFor({ state: "visible" });
+    await this.page.getByRole("button", { name: "ถัดไป" }).click();
   }
 
+  // Form: Confirm & Edit 
   async confirmSubmission() {
-    await this.confirmButton().click();
-    await this.page.waitForLoadState("networkidle");
+    await this.page.getByRole("button", { name: "ยืนยัน" }).click();
   }
 
-// Assertions 
+  async clickEdit() {
+    await this.page.getByRole("button", { name: "แก้ไข" }).click();
+  }
+
+  async confirmEdit() {
+    await this.page.getByRole("button", { name: "ยืนยัน" }).click();
+  }
+
+  // File Upload 
+  async uploadFile(filePath: string) {
+    const fileInput = this.page.locator("input[type='file']");
+    await fileInput.setInputFiles(filePath);
+  }
+
+  async removeUploadedFile() {
+    await this.page.getByRole("button", { name: "ลบไฟล์" }).click();
+  }
+
+  // Cancel 
+  async cancelSubmission() {
+    await this.page.getByRole("button", { name: "ยกเลิกการสมัคร" }).click();
+  }
+
+  async confirmCancel() {
+    await this.page
+      .getByRole("dialog")
+      .getByRole("button", { name: "ยืนยันการยกเลิก" })
+      .click();
+  }
+
+  // Assertions: Success
   async expectSubmitSuccess() {
-    await expect(this.successMessage()).toBeVisible();
+    await expect(
+      this.page.getByText("ส่งผลงานสำเร็จ")
+    ).toBeVisible();
   }
 
+  async expectEditSuccess() {
+    await expect(
+      this.page.getByText("แก้ไขผลงานสำเร็จ")
+    ).toBeVisible();
+  }
+
+  async expectPoemContentVisible(content: string) {
+    await expect(this.page.getByText(content)).toBeVisible();
+  }
+
+  async expectCancelSuccess() {
+    await expect(
+      this.page.getByText("ยกเลิกการสมัครสำเร็จ")
+    ).toBeVisible();
+  }
+
+  async expectFileUploaded(fileName: string) {
+    await expect(
+      this.page.getByText(fileName)
+    ).toBeVisible();
+  }
+
+  async expectSubmissionProofVisible() {
+    await expect(
+      this.page.locator("[data-testid='submission-proof']")
+    ).toBeVisible();
+  }
+
+  // Assertions: Status
   async expectPendingReviewStatus() {
-    await expect(this.pendingStatus()).toBeVisible();
+    await expect(
+      this.page.locator("[data-testid='submission-status']")
+    ).toHaveText("รอการตรวจสอบ");
   }
 
-  async expectDuplicateError(expectedMessage: string) {
-    await this.duplicateErrorMessage().waitFor({ state: "visible" });
-    const message = (await this.duplicateErrorMessage().textContent()) || "";
-    expect(message).toContain(expectedMessage);
-    await expect(this.confirmButton()).not.toBeVisible();
+  async expectStatus(status: string) {
+    await expect(
+      this.page.locator("[data-testid='submission-status']")
+    ).toHaveText(status);
+  }
+
+  // Assertions: List 
+  async expectMySubmissionsListVisible() {
+    await expect(
+      this.page.locator("[data-testid='my-submissions-list']")
+    ).toBeVisible();
+    const items = this.page.locator("[data-testid='submission-item']");
+    await expect(items.first()).toBeVisible();
+  }
+
+  async expectSubmissionVisible(title: string) {
+    await expect(
+      this.page.getByTestId("my-submissions-list").getByText(title)
+    ).toBeVisible();
+  }
+
+  async expectSubmissionNotInList(title: string) {
+    await expect(
+      this.page.getByTestId("my-submissions-list").getByText(title)
+    ).not.toBeVisible();
+  }
+
+  async expectSubmissionFormVisible() {
+    await expect(
+      this.page.locator("[data-testid='submission-form']")
+    ).toBeVisible();
+    await expect(this.page.getByLabel("ชื่อ")).toBeVisible();
+    await expect(this.page.getByLabel("นามสกุล")).toBeVisible();
+    await expect(this.page.getByLabel("อีเมล")).toBeVisible();
+    await expect(this.page.getByLabel("เบอร์โทรศัพท์")).toBeVisible();
+  }
+
+  async expectSubmissionFormTitle(title: string) {
+    await expect(this.page.getByText(title)).toBeVisible();
+  }
+
+  // Assertions: Errors
+  async expectFieldError(field: string, message: string) {
+    await expect(
+      this.page.locator(`[data-testid='error-${field}']`)
+    ).toHaveText(message);
+  }
+
+  async expectDuplicateError(message: string) {
+    await expect(
+      this.page.locator("[data-testid='error-duplicate']")
+    ).toHaveText(message);
+  }
+
+  async expectFileUploadError(message: string) {
+    await expect(
+      this.page.locator("[data-testid='error-file-upload']")
+    ).toHaveText(message);
+  }
+
+  async expectRedirectToLogin() {
+    await this.page.waitForURL("**/login**");
+    await expect(
+      this.page.locator("[data-testid='login-form']")
+    ).toBeVisible();
   }
 }
