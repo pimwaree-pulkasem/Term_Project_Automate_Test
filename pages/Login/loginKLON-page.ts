@@ -22,7 +22,7 @@ import { Page, Locator, expect } from '@playwright/test';
 
     // ── ② Actions ────────────────────────────────────────
     async goto() {
-        await this.page.goto('/');  // baseURL ใน config ช่วยให้เขียนแค่ '/'
+        await this.page.goto('https://poetry-contest-platform.vercel.app/login'); 
     }
 
     async login(email: string, password: string) {
